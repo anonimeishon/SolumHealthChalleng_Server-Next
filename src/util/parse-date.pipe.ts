@@ -1,3 +1,3 @@
 import { ParseDatePipe } from '@nestjs/common';
 
-export const parseDatePipeInstance = new ParseDatePipe({});
+export const parseDatePipeInstance = new ParseDatePipe({ optional: true });

@@ -17,10 +17,16 @@ export class UsersRepository {
   async findAll(): Promise<User[]> {
     return this.prisma.user.findMany();
   }
-
-  async findOne(id: number): Promise<User | null> {
+  async findById(params: { id: number }): Promise<User | null> {
+    const { id } = params;
     return this.prisma.user.findUnique({
       where: { id },
+    });
+  }
+  async findOne(params: { name: string }): Promise<User | null> {
+    const { name } = params;
+    return this.prisma.user.findFirst({
+      where: { name: { startsWith: name } },
     });
   }
 

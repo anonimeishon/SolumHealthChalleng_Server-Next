@@ -6,8 +6,13 @@ import { Prisma } from '@prisma/client';
 export class CallsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(params: { withTranscript?: boolean; from?: Date; to?: Date }) {
-    const { withTranscript, from, to } = params;
+  async findAll(params: {
+    withTranscript?: boolean;
+    from?: Date;
+    to?: Date;
+    companyId?: number;
+  }) {
+    const { withTranscript, from, to, companyId } = params;
     let filters: Prisma.CallFindManyArgs = {
       include: {
         company: true,
@@ -39,6 +44,12 @@ export class CallsRepository {
         start_date: {
           lte: to,
         },
+      };
+    }
+    if (params.companyId) {
+      filters.where = {
+        ...filters.where,
+        company_id: companyId,
       };
     }
     return this.prisma.call.findMany(filters);

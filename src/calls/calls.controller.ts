@@ -6,6 +6,7 @@ import {
   Query,
   ParseBoolPipe,
   ParseDatePipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { CallsService } from './calls.service';
 
@@ -24,8 +25,9 @@ export class CallsController {
     withTranscript: boolean,
     @Query('from', new ParseDatePipe({ optional: true })) from: Date, // Use the imported instance
     @Query('to', new ParseDatePipe({ optional: true })) to: Date, // Use the imported instance
+    @Query('companyId', new ParseIntPipe({ optional: true })) companyId: number, // Use the imported instance
   ) {
-    return this.callsService.findAll({ withTranscript, from, to });
+    return this.callsService.findAll({ withTranscript, from, to, companyId });
   }
 
   @Get(':id')

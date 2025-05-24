@@ -30,10 +30,13 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
-      '@typescript-eslint/no-unsafe-return': 'warn',
+      '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       'eslint@typescript-eslint/no-unsafe-call': 'off',
-      'typescript-eslint/require-await': 'off',
+      '@typescript-eslint/require-await': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
       // It's possible no-unsafe-call is the one causing issues with decorators
       // If problems persist, we might set this to 'warn' or 'off' globally,
       // or specifically for DTOs as shown in the override below.

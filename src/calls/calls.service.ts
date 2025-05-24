@@ -11,7 +11,12 @@ export class CallsService {
   //   return 'This action adds a new call';
   // }
 
-  findAll(params: { withTranscript?: boolean; from?: Date; to?: Date }) {
+  findAll(params: {
+    withTranscript?: boolean;
+    from?: Date;
+    to?: Date;
+    companyId?: number;
+  }) {
     return this.callsRepository.findAll(params);
   }
 

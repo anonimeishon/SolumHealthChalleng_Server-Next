@@ -1,35 +1,55 @@
 import { Injectable } from '@nestjs/common';
-import { CreateHumanExaminationDto } from './dto/human-examination.dto';
 import { UpdateHumanExaminationDto } from './dto/human-examination.dto';
 import { HumanExaminationRepository } from './human-examination.repository';
 import { Prisma } from '@prisma/client';
+import { UsersRepository } from 'src/users/users.repository';
 
 @Injectable()
 export class HumanExaminationService {
   constructor(
     private readonly humanExaminationRepository: HumanExaminationRepository,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
-  create(createHumanExaminationDto: Prisma.HumanEvaluationCreateInput) {
-    return this.humanExaminationRepository.create(createHumanExaminationDto);
+  async create(
+    createHumanExaminationDto: Prisma.HumanEvaluationUncheckedCreateInput,
+  ) {
+    let { evaluator_id } = createHumanExaminationDto;
+
+    if (!evaluator_id) {
+      const evaluator = await this.usersRepository.findOne({ name: 'Guest' });
+      if (evaluator) {
+        evaluator_id = evaluator.id;
+      } else {
+        throw new Error('Evaluator not found');
+      }
+    }
+
+    return this.humanExaminationRepository.create({
+      ...createHumanExaminationDto,
+      evaluator_id,
+    });
   }
 
-  findAll() {
+  async findAll() {
     return this.humanExaminationRepository.findAll();
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     return this.humanExaminationRepository.findOne(id);
   }
 
-  update(id: number, updateHumanExaminationDto: UpdateHumanExaminationDto) {
+  async update(
+    id: number,
+    updateHumanExaminationDto: UpdateHumanExaminationDto,
+  ) {
     return this.humanExaminationRepository.update(
       id,
       updateHumanExaminationDto,
     );
   }
 
-  remove(id: number) {
+  async remove(id: number) {
     return this.humanExaminationRepository.remove(id);
   }
 }

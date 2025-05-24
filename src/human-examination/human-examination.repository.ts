@@ -1,17 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { HumanEvaluation, Prisma } from '@prisma/client'; // Import HumanEvaluation type
-import {
-  CreateHumanExaminationDto,
-  UpdateHumanExaminationDto,
-} from './dto/human-examination.dto';
+import { UpdateHumanExaminationDto } from './dto/human-examination.dto';
 
 @Injectable()
 export class HumanExaminationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(
-    createHumanExaminationDto: Prisma.HumanEvaluationCreateInput,
+    createHumanExaminationDto: Prisma.HumanEvaluationUncheckedCreateInput,
   ): Promise<HumanEvaluation> {
     // Added return type
     return this.prisma.humanEvaluation.create({
@@ -26,7 +23,7 @@ export class HumanExaminationRepository {
 
   async findOne(id: number): Promise<HumanEvaluation | null> {
     // Added return type
-    return this.prisma.humanEvaluation.findUnique({ where: { id } });
+    return await this.prisma.humanEvaluation.findUnique({ where: { id } });
   }
 
   async update(

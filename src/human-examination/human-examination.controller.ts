@@ -8,7 +8,6 @@ import {
   Delete,
 } from '@nestjs/common';
 import { HumanExaminationService } from './human-examination.service';
-import { CreateHumanExaminationDto } from './dto/human-examination.dto';
 import { UpdateHumanExaminationDto } from './dto/human-examination.dto';
 import { Prisma } from '@prisma/client';
 
@@ -19,7 +18,10 @@ export class HumanExaminationController {
   ) {}
 
   @Post()
-  create(@Body() createHumanExaminationDto: Prisma.HumanEvaluationCreateInput) {
+  create(
+    @Body()
+    createHumanExaminationDto: Prisma.HumanEvaluationUncheckedCreateInput,
+  ) {
     return this.humanExaminationService.create(createHumanExaminationDto);
   }
 
