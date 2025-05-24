@@ -3,27 +3,18 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
-import {
-  TranscribeClient,
-  StartTranscriptionJobCommand,
-} from '@aws-sdk/client-transcribe';
 import { CallsRepository } from './calls.repository';
+import { LlmEvaluationRepository } from '../data-ingestion/repositories/data-ingestion.repositories';
+import * as jwt from 'jsonwebtoken';
 // import { CreateCallDto } from './dto/create-call.dto'; // Example DTO
 // import { UpdateCallDto } from './dto/update-call.dto'; // Example DTO
 
 @Injectable()
 export class CallsService {
-  private transcribeClient: TranscribeClient;
-
-  constructor(private readonly callsRepository: CallsRepository) {
-    this.transcribeClient = new TranscribeClient({
-      region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-      },
-    });
-  }
+  constructor(
+    private readonly callsRepository: CallsRepository,
+    private readonly llmEvaluationRepository: LlmEvaluationRepository,
+  ) {}
 
   // create(createCallDto: CreateCallDto) {
   //   return 'This action adds a new call';
@@ -78,28 +69,46 @@ export class CallsService {
     }
 
     try {
-      // Generate a unique job name
-      const jobName = `call-${id}-${Date.now()}`;
+      // Generate JWT token for authentication
+      const secret = process.env.WEBHOOK_SECRET;
+      if (!secret) {
+        throw new BadRequestException('WEBHOOK_SECRET not configured');
+      }
 
-      // Start transcription job
-      const startCommand = new StartTranscriptionJobCommand({
-        TranscriptionJobName: jobName,
-        Media: {
-          MediaFileUri: call.recording_url,
+      const token = jwt.sign(
+        {
+          callData: call,
+          iat: Math.floor(Date.now() / 1000),
+          exp: Math.floor(Date.now() / 1000) + 300, // 5 minutes
         },
-        MediaFormat: 'mp3', // Adjust based on your audio format
-        LanguageCode: 'en-US',
-        OutputBucketName: process.env.AWS_TRANSCRIBE_OUTPUT_BUCKET,
+        secret,
+        { algorithm: 'HS256' },
+      );
+
+      // Call external transcription webhook
+      const webhookUrl =
+        'https://smainero.app.n8n.cloud/webhook/8e2415d4-ffb0-4331-b438-6b07562ce5c4';
+
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(call),
       });
 
-      await this.transcribeClient.send(startCommand);
+      if (!response.ok) {
+        throw new Error(
+          `Webhook call failed: ${response.status} ${response.statusText}`,
+        );
+      }
 
       // Save the PENDING status to the database before returning
       await this.callsRepository.updateTranscriptionStatus(id, 'PENDING');
 
       return {
         message: 'Transcription job started successfully',
-        jobName,
         status: 'PENDING',
       };
     } catch (error) {
@@ -107,6 +116,59 @@ export class CallsService {
       // Set status to failed if not already set
       await this.callsRepository.updateTranscriptionStatus(id, 'FAILED');
       throw new BadRequestException('Failed to generate transcript');
+    }
+  }
+
+  async handleTranscriptionWebhook(
+    id: string,
+    data: {
+      aiReviewToParse: string;
+      transcription: string;
+      jobName?: string;
+    },
+  ) {
+    try {
+      // Extract call ID from job name (format: call-{id}-{timestamp})
+      const callId = Number(id);
+
+      // Parse the AI review JSON from the text
+      let aiReview: { review: string; score: number } | null = null;
+
+      try {
+        // Extract JSON from the aiReviewToParse text
+        const jsonMatch = data.aiReviewToParse.match(/```json\n(.*?)\n```/s);
+        if (jsonMatch) {
+          const jsonString = jsonMatch[1];
+          aiReview = JSON.parse(jsonString);
+        }
+      } catch (parseError) {
+        console.warn('Failed to parse AI review JSON:', parseError);
+        // Continue without AI review if parsing fails
+      }
+
+      // Update the call with the transcription
+      await this.callsRepository.updateTranscript(callId, data.transcription);
+
+      // Create LLM evaluation if we successfully parsed the AI review
+      if (aiReview) {
+        await this.llmEvaluationRepository.create({
+          call_id: callId,
+          overall_score: aiReview.score,
+          llm_summary: aiReview.review,
+          feedback: data.aiReviewToParse, // Store the full text for reference
+        });
+      }
+
+      return {
+        message: 'Transcription updated successfully',
+        callId,
+        transcription: data.transcription,
+        aiReview: aiReview,
+        status: 'FINISHED',
+      };
+    } catch (error) {
+      console.error('Webhook processing error:', error);
+      throw new BadRequestException('Failed to process transcription webhook');
     }
   }
 }

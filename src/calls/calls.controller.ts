@@ -8,6 +8,7 @@ import {
   ParseDatePipe,
   ParseIntPipe,
   Post,
+  Body,
 } from '@nestjs/common';
 import { CallsService } from './calls.service';
 
@@ -49,5 +50,18 @@ export class CallsController {
   @Post(':id/transcript')
   generateTranscript(@Param('id') id: string) {
     return this.callsService.generateTranscript(+id);
+  }
+
+  @Post(':id/webhook/transcription')
+  handleTranscriptionWebhook(
+    @Body()
+    body: {
+      aiReviewToParse: string;
+      transcription: string;
+      jobName?: string;
+    },
+    @Param('id') id: string,
+  ) {
+    return this.callsService.handleTranscriptionWebhook(id, body);
   }
 }
