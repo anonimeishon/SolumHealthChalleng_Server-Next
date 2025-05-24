@@ -11,7 +11,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto, UserDto } from './users/dto/user.dto';
+import { CreateUserDto, UpdateUserDto, UserDto } from './dto/user.dto';
 import {
   ApiTags,
   ApiOperation,

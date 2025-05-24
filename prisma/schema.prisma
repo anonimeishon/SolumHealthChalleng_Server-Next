@@ -6,13 +6,14 @@
 // Replace "postgresql" with "sqlite" or "mysql" if you use a different database.
 generator client {
   provider = "prisma-client-js"
-  output          = "../node_modules/.prisma/client"
+  output   = "../node_modules/.prisma/client"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 // --- Core Entities ---
 
 // Represents a company or clinic (e.g., 'Clinic A', 'Clinic B').
@@ -39,12 +40,11 @@ model Agent {
 
 // Represents a user, specifically your QA team members who perform evaluations.
 model User {
-  id               Int             @id @default(autoincrement()) // Unique identifier for the user
-  name             String // User's name
-  email            String             @unique // User's email, must be unique
-  role             String // User's role (e.g., "QA_Manager", "QA_Agent")
-  evaluations      Evaluation[] // Relation: A user can perform multiple evaluations
-  
+  id                Int               @id @default(autoincrement()) // Unique identifier for the user
+  name              String // User's name 
+  email             String            @unique // User's email, must be unique
+  role              String // User's role (e.g., "QA_Manager", "QA_Agent")
+  human_evaluations HumanEvaluation[] // Relation: A user can perform multiple human evaluations
 }
 
 // --- Enum for Evaluation Type ---
@@ -80,31 +80,29 @@ model Call {
   reason_for_call     String? // e.g., 'Appointment Booking', 'Billing Inquiry' (nullable)
   department          String? // e.g., 'Cardiology', 'Pediatrics' (nullable)
   service_provided    String? // e.g., 'Consultation', 'Prescription Refill' (nullable)
+  ended_reason        String? // e.g., 'Customer Hangup', 'Agent Hangup' (nullable)
+  customer_name       String? // Customer's name
+  insurance           String? // Customer's insurance
+  dob                 String? // Customer's date of birth
   // Add more clinic-specific call fields as identified from your CSVs.
   // Example: clinic_a_patient_tier String?
   // Example: clinic_b_referral_source String?
 
-  company          Company            @relation(fields: [company_id], references: [id]) // Relation: A call belongs to one company
-  agent            Agent              @relation(fields: [agent_id], references: [id]) // Relation: A call was handled by one agent
-  evaluations      Evaluation[] // Relation: A call can have multiple evaluations (human and LLM)
-
+  company           Company           @relation(fields: [company_id], references: [id]) // Relation: A call belongs to one company
+  agent             Agent             @relation(fields: [agent_id], references: [id]) // Relation: A call was handled by one agent
+  human_evaluations HumanEvaluation[] // Relation: A call can have multiple human evaluations
+  llm_evaluations   LlmEvaluation[] // Relation: A call can have multiple LLM evaluations
 }
 
-// --- Evaluation Table ---
-// This table stores evaluation data for each call, including both human and LLM reviews.
-// It includes common evaluation metrics and nullable fields for clinic-specific criteria.
-model Evaluation {
-  id              Int         @id @default(autoincrement()) // Unique identifier for the evaluation
-  call_id         Int            @map("callId") // Foreign key to the Call table
-  evaluator_id    Int?        @map("evaluatorId") // Foreign key to the User table (nullable if LLM evaluation)
-  evaluation_type EvaluationType // Type of evaluation (HUMAN or LLM)
-  timestamp       DateTime       @default(now()) // Date and time when the evaluation was created
+// --- Human Evaluation Table ---
+// This table stores human evaluation data for each call performed by QA team members.
+model HumanEvaluation {
+  id           Int      @id @default(autoincrement()) // Unique identifier for the evaluation
+  call_id      Int      @map("callId") // Foreign key to the Call table
+  evaluator_id Int      @map("evaluatorId") // Foreign key to the User table
+  timestamp    DateTime @default(now()) // Date and time when the evaluation was created
 
-  // --- Common & Clinic-Specific Evaluation Fields (All Nullable) ---
-  // These fields capture various evaluation criteria. They are nullable to
-  // accommodate different evaluation forms across clinics or versions.
-
-  // General Evaluation Metrics
+  // Human Evaluation Metrics
   overall_score       Float? // e.g., a numerical score from 1-5 or 1-100 (nullable)
   politeness_score    Int? // e.g., 1-5 scale for agent politeness (nullable)
   resolution_status   Boolean? // e.g., true if the issue was resolved (nullable)
@@ -113,18 +111,50 @@ model Evaluation {
   empathy_score       Int? // e.g., 1-5 scale for agent empathy (nullable)
   adherence_to_script Boolean? // e.g., if the agent followed a script (nullable)
   problem_solved      Boolean? // whether the customer's problem was solved (nullable)
+  overall_comment     String?  @db.Text // Free-form human comment (nullable)
+  status              String? // Status from feedback engineer
 
-  // General Comments/Summaries
-  overall_comment String? @db.Text // Free-form human comment (nullable)
-  llm_summary     String? @db.Text // LLM generated summary (nullable)
-  llm_sentiment   String? // e.g., "Positive", "Negative", "Neutral" from LLM (nullable)
+  call      Call @relation(fields: [call_id], references: [id]) // Relation: A human evaluation belongs to one call
+  evaluator User @relation(fields: [evaluator_id], references: [id]) // Relation: A human evaluation is linked to a user
+}
 
-  // Clinic-Specific Evaluation Criteria
-  // Add more clinic-specific evaluation fields as identified from your CSVs.
-  // Example: clinic_a_greeting_quality String?
-  // Example: clinic_b_efficiency_rating String?
-  // Example: clinic_c_escalation_protocol_followed Boolean?
+// --- LLM Evaluation Table ---
+// This table stores LLM-generated evaluation data for each call.
+model LlmEvaluation {
+  id        Int      @id @default(autoincrement()) // Unique identifier for the evaluation
+  call_id   Int      @map("callId") // Foreign key to the Call table
+  timestamp DateTime @default(now()) // Date and time when the evaluation was created
 
-  call      Call  @relation(fields: [call_id], references: [id]) // Relation: An evaluation belongs to one call
-  evaluator User? @relation(fields: [evaluator_id], references: [id]) // Relation: A human evaluation is linked to a user
+  // LLM Evaluation Metrics
+  overall_score        Float? // e.g., a numerical score from 1-5 or 1-100 (nullable)
+  politeness_score     Int? // e.g., 1-5 scale for agent politeness (nullable)
+  resolution_status    Boolean? // e.g., true if the issue was resolved (nullable)
+  accuracy_rating      String? // e.g., "High", "Medium", "Low" (nullable)
+  clarity_score        Int? // e.g., 1-5 scale for agent clarity (nullable)
+  empathy_score        Int? // e.g., 1-5 scale for agent empathy (nullable)
+  adherence_to_script  Float? // e.g., if the agent followed a script (nullable)
+  problem_solved       Boolean? // whether the customer's problem was solved (nullable)
+  llm_summary          String?  @db.Text // LLM generated summary (nullable)
+  llm_sentiment        String? // e.g., "Positive", "Negative", "Neutral" from LLM (nullable)
+  feedback             String?  @db.Text // LLM feedback
+  call_type            String? // LLM determined call type
+  call_type_confidence Float?
+  call_type_reasoning  String?  @db.Text
+  sentiment_reasoning  String?  @db.Text
+  sentiment_confidence Float?
+  protocol_reasoning   String?  @db.Text
+  protocol_confidence  Float?
+  outcome_reasoning    String?  @db.Text
+  outcome_confidence   Float?
+  vapi_score           Float? // VAPI QA Score
+
+  call Call @relation(fields: [call_id], references: [id]) // Relation: An LLM evaluation belongs to one call
+}
+
+enum SentimentValue {
+  very_positive
+  positive
+  neutral
+  negative
+  very_negative
 }
