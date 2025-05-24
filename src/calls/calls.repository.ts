@@ -45,7 +45,15 @@ export class CallsRepository {
   }
 
   async findOne(id: number) {
-    return this.prisma.call.findUnique({ where: { id } });
+    return this.prisma.call.findUnique({
+      where: { id },
+      include: {
+        company: true,
+        agent: true,
+        human_evaluations: true,
+        llm_evaluations: true,
+      },
+    });
   }
 
   async remove(id: number) {
