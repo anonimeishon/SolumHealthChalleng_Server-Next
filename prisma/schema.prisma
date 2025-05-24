@@ -103,16 +103,16 @@ model HumanEvaluation {
   timestamp    DateTime @default(now()) // Date and time when the evaluation was created
 
   // Human Evaluation Metrics
-  overall_score       Float? // e.g., a numerical score from 1-5 or 1-100 (nullable)
-  politeness_score    Int? // e.g., 1-5 scale for agent politeness (nullable)
-  resolution_status   Boolean? // e.g., true if the issue was resolved (nullable)
-  accuracy_rating     String? // e.g., "High", "Medium", "Low" (nullable)
-  clarity_score       Int? // e.g., 1-5 scale for agent clarity (nullable)
-  empathy_score       Int? // e.g., 1-5 scale for agent empathy (nullable)
-  adherence_to_script Boolean? // e.g., if the agent followed a script (nullable)
-  problem_solved      Boolean? // whether the customer's problem was solved (nullable)
-  overall_comment     String?  @db.Text // Free-form human comment (nullable)
-  status              String? // Status from feedback engineer
+  overall_score     Float? // e.g., a numerical score from 1-5 or 1-100 (nullable)
+  // politeness_score    Int? // e.g., 1-5 scale for agent politeness (nullable)
+  resolution_status Boolean? // e.g., true if the issue was resolved (nullable)
+  // accuracy_rating     String? // e.g., "High", "Medium", "Low" (nullable)
+  // clarity_score       Int? // e.g., 1-5 scale for agent clarity (nullable)
+  // empathy_score       Int? // e.g., 1-5 scale for agent empathy (nullable)
+  // adherence_to_script Boolean? // e.g., if the agent followed a script (nullable)
+  problem_solved    Boolean? // whether the customer's problem was solved (nullable)
+  overall_comment   String?  @db.Text // Free-form human comment (nullable)
+  // status            String? // Status from feedback engineer
 
   call      Call @relation(fields: [call_id], references: [id]) // Relation: A human evaluation belongs to one call
   evaluator User @relation(fields: [evaluator_id], references: [id]) // Relation: A human evaluation is linked to a user
