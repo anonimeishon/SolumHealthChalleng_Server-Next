@@ -1,44 +1,49 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { HumanEvaluation, Prisma } from '@prisma/client'; // Import HumanEvaluation type
 import {
   CreateHumanExaminationDto,
   UpdateHumanExaminationDto,
-} from './dto/human-examination.dto'; // Assuming you will create this DTO
+} from './dto/human-examination.dto';
 
 @Injectable()
 export class HumanExaminationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createHumanExaminationDto: CreateHumanExaminationDto) {
-    // Replace with actual Prisma create logic for HumanExamination
-    // return this.prisma.humanExamination.create({ data: createHumanExaminationDto });
-    return 'This action adds a new humanExamination';
+  async create(
+    createHumanExaminationDto: Prisma.HumanEvaluationCreateInput,
+  ): Promise<HumanEvaluation> {
+    // Added return type
+    return this.prisma.humanEvaluation.create({
+      data: createHumanExaminationDto,
+    });
   }
 
-  async findAll() {
-    // Replace with actual Prisma findMany logic for HumanExamination
-    // return this.prisma.humanExamination.findMany();
-    return `This action returns all humanExamination`;
+  async findAll(): Promise<HumanEvaluation[]> {
+    // Added return type
+    return this.prisma.humanEvaluation.findMany();
   }
 
-  async findOne(id: number) {
-    // Replace with actual Prisma findUnique logic for HumanExamination
-    // return this.prisma.humanExamination.findUnique({ where: { id } });
-    return `This action returns a #${id} humanExamination`;
+  async findOne(id: number): Promise<HumanEvaluation | null> {
+    // Added return type
+    return this.prisma.humanEvaluation.findUnique({ where: { id } });
   }
 
   async update(
     id: number,
     updateHumanExaminationDto: UpdateHumanExaminationDto,
-  ) {
-    // Replace with actual Prisma update logic for HumanExamination
-    // return this.prisma.humanExamination.update({ where: { id }, data: updateHumanExaminationDto });
-    return `This action updates a #${id} humanExamination`;
+  ): Promise<HumanEvaluation> {
+    // Added return type
+    const response: HumanEvaluation = await this.prisma.humanEvaluation.update({
+      // Explicitly typed response
+      where: { id },
+      data: updateHumanExaminationDto,
+    });
+    return response;
   }
 
-  async remove(id: number) {
-    // Replace with actual Prisma delete logic for HumanExamination
-    // return this.prisma.humanExamination.delete({ where: { id } });
-    return `This action removes a #${id} humanExamination`;
+  async remove(id: number): Promise<HumanEvaluation> {
+    // Added return type
+    return this.prisma.humanEvaluation.delete({ where: { id } });
   }
 }

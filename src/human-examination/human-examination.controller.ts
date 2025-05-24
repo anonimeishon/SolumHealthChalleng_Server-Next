@@ -10,6 +10,7 @@ import {
 import { HumanExaminationService } from './human-examination.service';
 import { CreateHumanExaminationDto } from './dto/human-examination.dto';
 import { UpdateHumanExaminationDto } from './dto/human-examination.dto';
+import { Prisma } from '@prisma/client';
 
 @Controller('human-examination')
 export class HumanExaminationController {
@@ -18,7 +19,7 @@ export class HumanExaminationController {
   ) {}
 
   @Post()
-  create(@Body() createHumanExaminationDto: CreateHumanExaminationDto) {
+  create(@Body() createHumanExaminationDto: Prisma.HumanEvaluationCreateInput) {
     return this.humanExaminationService.create(createHumanExaminationDto);
   }
 

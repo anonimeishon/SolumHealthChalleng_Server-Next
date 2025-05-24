@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateHumanExaminationDto } from './dto/human-examination.dto';
 import { UpdateHumanExaminationDto } from './dto/human-examination.dto';
 import { HumanExaminationRepository } from './human-examination.repository';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class HumanExaminationService {
@@ -9,7 +10,7 @@ export class HumanExaminationService {
     private readonly humanExaminationRepository: HumanExaminationRepository,
   ) {}
 
-  create(createHumanExaminationDto: CreateHumanExaminationDto) {
+  create(createHumanExaminationDto: Prisma.HumanEvaluationCreateInput) {
     return this.humanExaminationRepository.create(createHumanExaminationDto);
   }
 
