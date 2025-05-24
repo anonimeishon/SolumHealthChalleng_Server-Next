@@ -200,14 +200,10 @@ export class DataIngestionService {
           row.comments_engineer ||
           row['Comments Engineer'] ||
           '',
-        status:
-          row.status_feedback_engineer ||
-          row['Status Feedback Engineer'] ||
-          row['QA Check'],
+
         problem_solved: this.parseOptionalBoolean(
           row.evaluation || row['Evaluation'],
         ),
-        accuracy_rating: row.evaluation || row['Evaluation'],
       };
       await this.humanEvaluationRepository.create(humanEvaluationData);
       this.logger.debug(`Created HumanEvaluation for call ${call.id}`);

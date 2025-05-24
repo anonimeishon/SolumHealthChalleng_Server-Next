@@ -10,7 +10,17 @@ async function bootstrap() {
   // Increase payload limits using express.json and express.urlencoded
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
-  app.enableCors({});
+
+  const corsOptions = {
+    origin: [
+      'http://localhost:3000', // Replace 3000 with your local frontend port if different
+      'https://v0-vercel-web-dashboard-gamma.vercel.app', // Replace with your actual deployed frontend URL
+      // Add any other origins you need to allow
+    ],
+    optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
+  };
+
+  app.enableCors(corsOptions); // Pass the corsOptions object here
 
   app.useGlobalPipes(new ValidationPipe());
 
