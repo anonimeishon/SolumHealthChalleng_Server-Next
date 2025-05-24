@@ -6,6 +6,56 @@ export interface MetricsFilters {
   companyId?: number;
 }
 
+export class TopPerformingAgentDto {
+  @ApiProperty({
+    description: 'Agent ID',
+    example: 1,
+  })
+  id!: number;
+
+  @ApiProperty({
+    description: 'Agent name',
+    example: 'John Doe',
+  })
+  name!: string;
+
+  @ApiProperty({
+    description: 'Company name',
+    example: 'Clinic A',
+  })
+  companyName!: string;
+
+  @ApiProperty({
+    description: 'Combined evaluation score (average of AI and human)',
+    example: 4.7,
+  })
+  combinedScore!: number;
+
+  @ApiProperty({
+    description: 'Average AI evaluation score',
+    example: 4.8,
+  })
+  avgLlmScore!: number;
+
+  @ApiProperty({
+    description: 'Average human evaluation score',
+    example: 4.6,
+  })
+  avgHumanScore!: number;
+
+  @ApiProperty({
+    description: 'Number of calls handled',
+    example: 45,
+  })
+  callCount!: number;
+
+  @ApiProperty({
+    description: 'Total number of evaluations',
+    example: 38,
+  })
+  evaluationCount!: number;
+}
+
 export class DashboardMetricsDto {
   @ApiProperty({
     description: 'Total number of calls',
@@ -57,6 +107,13 @@ export class DashboardMetricsDto {
     previous: any;
     trend: number | null;
   };
+
+  @ApiProperty({
+    description: 'Top performing agent with best combined evaluation score',
+    type: TopPerformingAgentDto,
+    nullable: true,
+  })
+  topPerformingAgent!: TopPerformingAgentDto | null;
 }
 
 export class MetricScoreDto {

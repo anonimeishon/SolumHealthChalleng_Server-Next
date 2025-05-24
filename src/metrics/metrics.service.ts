@@ -99,4 +99,8 @@ export class MetricsService {
   async getTotalCalls(filters: MetricsFilters) {
     return this.metricsRepository.getTotalCalls(filters);
   }
+
+  async getTopPerformingAgent(filters: MetricsFilters) {
+    return this.metricsRepository.getTopPerformingAgent(filters);
+  }
 }

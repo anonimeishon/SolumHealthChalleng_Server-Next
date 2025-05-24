@@ -7,7 +7,7 @@ export class DashboardRepository {
 
   async getDashboardStats(from?: string, to?: string, companyId?: string) {
     const whereClause: any = {};
-
+    //TODO OPTIMIZE
     if (from && to) {
       whereClause.start_date = {
         gte: new Date(from),

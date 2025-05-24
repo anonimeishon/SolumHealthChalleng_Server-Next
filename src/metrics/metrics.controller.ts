@@ -9,6 +9,7 @@ import {
   ResolvedCallRateDto,
   TotalCallsDto,
   PerformanceTrendDto,
+  TopPerformingAgentDto,
 } from './dto/metrics.dto';
 
 @ApiTags('metrics')
@@ -57,6 +58,7 @@ export class MetricsController {
       resolvedCallRateData,
       humanEvaluationScoreData,
       performanceTrendData,
+      topPerformingAgentData,
     ] = await Promise.all([
       this.metricsService.getTotalCalls(filters),
       this.metricsService.getAverageCallDuration(filters),
@@ -64,6 +66,7 @@ export class MetricsController {
       this.metricsService.getResolvedCallRate(filters),
       this.metricsService.getHumanEvaluationScore(filters),
       this.metricsService.getPerformanceTrend(filters),
+      this.metricsService.getTopPerformingAgent(filters),
     ]);
 
     return {
@@ -78,6 +81,7 @@ export class MetricsController {
       ),
       callVolumeChange: performanceTrendData.trend || 0,
       performanceTrend: performanceTrendData,
+      topPerformingAgent: topPerformingAgentData,
     };
   }
 
@@ -283,5 +287,40 @@ export class MetricsController {
     companyId?: number,
   ) {
     return this.metricsService.getTotalCalls({ from, to, companyId });
+  }
+
+  @Get('top-performing-agent')
+  @ApiOperation({ summary: 'Get top performing agent' })
+  @ApiQuery({
+    name: 'from',
+    required: false,
+    type: String,
+    description: 'Start date filter (ISO string)',
+  })
+  @ApiQuery({
+    name: 'to',
+    required: false,
+    type: String,
+    description: 'End date filter (ISO string)',
+  })
+  @ApiQuery({
+    name: 'companyId',
+    required: false,
+    type: Number,
+    description: 'Company ID filter',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Top performing agent retrieved successfully',
+    type: TopPerformingAgentDto,
+  })
+  async getTopPerformingAgent(
+    @Query('from', parseDatePipeInstance) from?: Date,
+    @Query('to', parseDatePipeInstance) to?: Date,
+    @Query('companyId', new ParseIntPipe({ optional: true }))
+    companyId?: number,
+  ) {
+    const filters = { from, to, companyId };
+    return this.metricsService.getTopPerformingAgent(filters);
   }
 }

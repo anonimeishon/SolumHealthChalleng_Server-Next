@@ -7,6 +7,7 @@ import {
   ParseBoolPipe,
   ParseDatePipe,
   ParseIntPipe,
+  Post,
 } from '@nestjs/common';
 import { CallsService } from './calls.service';
 
@@ -43,5 +44,10 @@ export class CallsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.callsService.remove(+id);
+  }
+
+  @Post(':id/transcript')
+  generateTranscript(@Param('id') id: string) {
+    return this.callsService.generateTranscript(+id);
   }
 }

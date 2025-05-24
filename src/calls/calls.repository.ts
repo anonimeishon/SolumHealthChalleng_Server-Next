@@ -70,5 +70,38 @@ export class CallsRepository {
   async remove(id: number) {
     return this.prisma.call.delete({ where: { id } });
   }
+
+  async updateTranscript(id: number, transcript: string) {
+    return this.prisma.call.update({
+      where: { id },
+      data: {
+        transcript,
+        transcription_status: 'FINISHED',
+      },
+      include: {
+        company: true,
+        agent: true,
+        human_evaluations: true,
+        llm_evaluations: true,
+      },
+    });
+  }
+
+  async updateTranscriptionStatus(
+    id: number,
+    status: 'NOT_STARTED' | 'PENDING' | 'FINISHED' | 'FAILED',
+  ) {
+    return this.prisma.call.update({
+      where: { id },
+      data: { transcription_status: status },
+      include: {
+        company: true,
+        agent: true,
+        human_evaluations: true,
+        llm_evaluations: true,
+      },
+    });
+  }
+
   // Implement other CRUD methods as needed
 }
