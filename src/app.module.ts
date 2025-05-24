@@ -9,7 +9,14 @@ import { LlmExaminationModule } from './llm-examination/llm-examination.module';
 import { HumanExaminationModule } from './human-examination/human-examination.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, DataIngestionModule, CallsModule, LlmExaminationModule, HumanExaminationModule], // Add DataIngestionModule to imports
+  imports: [
+    PrismaModule,
+    UsersModule,
+    DataIngestionModule,
+    CallsModule,
+    LlmExaminationModule,
+    HumanExaminationModule,
+  ], // Add DataIngestionModule to imports
   controllers: [AppController],
   providers: [AppService],
 })

@@ -10,6 +10,7 @@ async function bootstrap() {
   // Increase payload limits using express.json and express.urlencoded
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
+  app.enableCors({});
 
   app.useGlobalPipes(new ValidationPipe());
 
